@@ -1,4 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent, useEffect, useRef } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import LoginModal from './LoginModal';
 import './OCRConverter.css';
 
 interface ConversionStatus {
@@ -7,6 +9,9 @@ interface ConversionStatus {
 }
 
 const OCRConverter = () => {
+  const { isAuthenticated } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginMode, setLoginMode] = useState<'login' | 'signup'>('login');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>('');
   const [extractedText, setExtractedText] = useState<string>('');
@@ -97,6 +102,15 @@ const OCRConverter = () => {
 
   const handleExtract = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      setStatus({
+        type: 'error',
+        message: 'Please sign in to use OCR'
+      });
+      return;
+    }
 
     if (!selectedFile) {
       setStatus({
@@ -292,8 +306,9 @@ const OCRConverter = () => {
   };
 
   return (
-    <div className="ocr-converter" ref={containerRef}>
-      <div className="converter-container">
+    <>
+      <div className="ocr-converter" ref={containerRef}>
+        <div className="converter-container">
         <h1>OCR Text Extraction</h1>
         <p className="subtitle">Extract text from images with multi-language support</p>
 
@@ -465,6 +480,14 @@ const OCRConverter = () => {
         </div>
       </div>
     </div>
+
+    <LoginModal
+      isOpen={showLoginModal}
+      onClose={() => setShowLoginModal(false)}
+      mode={loginMode}
+      onSwitchMode={() => setLoginMode(loginMode === 'login' ? 'signup' : 'login')}
+    />
+  </>
   );
 };
 
