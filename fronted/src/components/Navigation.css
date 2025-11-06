@@ -1,6 +1,7 @@
 .navigation {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   position: fixed;
   top: 0;
   left: 0;
@@ -29,7 +30,10 @@
 }
 
 .nav-brand h2 {
-  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
@@ -37,49 +41,40 @@
 
 .nav-links {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .nav-link {
-  color: white;
+  color: #667eea;
   text-decoration: none;
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem 1rem;
   border-radius: 8px;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.3s ease;
   border: 2px solid transparent;
 }
 
 .nav-link:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(102, 126, 234, 0.1);
+  transform: translateY(-2px);
 }
 
 .nav-link.active {
-  background: white;
-  color: #667eea;
-  border-color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
 .nav-link-ocr {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+  color: #10b981;
 }
 
 .nav-link-ocr:hover {
-  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-  border-color: rgba(255, 255, 255, 0.6);
-  box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
-  transform: translateY(-1px);
+  background: rgba(16, 185, 129, 0.1);
 }
 
 .nav-link-ocr.active {
-  background: white;
-  color: #10b981;
-  border-color: white;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
 }
 
 .auth-buttons {
@@ -90,8 +85,8 @@
 
 .signup-button {
   background: transparent;
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: #667eea;
+  border: 2px solid #667eea;
   padding: 0.625rem 1.5rem;
   border-radius: 50px;
   font-weight: 600;
@@ -101,15 +96,14 @@
 }
 
 .signup-button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.8);
+  background: rgba(102, 126, 234, 0.1);
   transform: translateY(-1px);
 }
 
 .login-button {
-  background: white;
-  color: #667eea;
-  border: 2px solid white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: 2px solid transparent;
   padding: 0.625rem 1.5rem;
   border-radius: 50px;
   font-weight: 600;
@@ -119,9 +113,9 @@
 }
 
 .login-button:hover {
-  background: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 @media (max-width: 640px) {

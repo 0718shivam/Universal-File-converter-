@@ -1,4 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent, useEffect, useRef } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import LoginModal from './LoginModal';
 import './PDFConverter.css';
 
 interface ConversionStatus {
@@ -15,6 +17,9 @@ interface PDFInfo {
 }
 
 const PDFConverter = () => {
+  const { isAuthenticated } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginMode, setLoginMode] = useState<'login' | 'signup'>('login');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [operation, setOperation] = useState<string>('to-images');
@@ -89,6 +94,15 @@ const PDFConverter = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      setStatus({
+        type: 'error',
+        message: 'Please sign in to use PDF tools'
+      });
+      return;
+    }
 
     if (!selectedFile && !selectedFiles) {
       setStatus({ type: 'error', message: 'Please select a file first' });
@@ -313,8 +327,9 @@ const PDFConverter = () => {
   };
 
   return (
-    <div className="pdf-converter" ref={containerRef}>
-      <div className="converter-container">
+    <>
+      <div className="pdf-converter" ref={containerRef}>
+        <div className="converter-container">
         <h1>PDF Converter & Tools</h1>
         <p className="subtitle">All-in-one PDF conversion and manipulation tool</p>
 
@@ -437,6 +452,14 @@ const PDFConverter = () => {
         </div>
       </div>
     </div>
+
+    <LoginModal
+      isOpen={showLoginModal}
+      onClose={() => setShowLoginModal(false)}
+      mode={loginMode}
+      onSwitchMode={() => setLoginMode(loginMode === 'login' ? 'signup' : 'login')}
+    />
+  </>
   );
 };
 

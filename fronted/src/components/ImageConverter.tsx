@@ -1,4 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent, useEffect, useRef } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import LoginModal from './LoginModal';
 import './ImageConverter.css';
 
 interface ConversionStatus {
@@ -7,6 +9,9 @@ interface ConversionStatus {
 }
 
 const ImageConverter = () => {
+  const { isAuthenticated } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginMode, setLoginMode] = useState<'login' | 'signup'>('login');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [targetFormat, setTargetFormat] = useState<string>('PNG');
   const [preview, setPreview] = useState<string>('');
@@ -67,6 +72,15 @@ const ImageConverter = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      setStatus({
+        type: 'error',
+        message: 'Please sign in to use the converter'
+      });
+      return;
+    }
 
     if (!selectedFile) {
       setStatus({
@@ -136,8 +150,9 @@ const ImageConverter = () => {
   };
 
   return (
-    <div className="image-converter" ref={containerRef}>
-      <div className="converter-container">
+    <>
+      <div className="image-converter" ref={containerRef}>
+        <div className="converter-container">
         <h1>Image Format Converter</h1>
         <p className="subtitle">Convert your images to any format</p>
 
@@ -243,6 +258,14 @@ const ImageConverter = () => {
         </div>
       </div>
     </div>
+
+    <LoginModal
+      isOpen={showLoginModal}
+      onClose={() => setShowLoginModal(false)}
+      mode={loginMode}
+      onSwitchMode={() => setLoginMode(loginMode === 'login' ? 'signup' : 'login')}
+    />
+  </>
   );
 };
 
