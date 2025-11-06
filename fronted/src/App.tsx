@@ -4,8 +4,10 @@ import './App.css';
 import { AuthProvider } from './contexts/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navigation from './components/Navigation';
+import LandingPage from './components/LandingPage';
 import ImageConverter from './components/ImageConverter';
 import PDFConverter from './components/PDFConverter';
+import OCRConverter from './components/OCRConverter';
 
 // Replace with your Google OAuth Client ID
 // Get it from: https://console.cloud.google.com/apis/credentials
@@ -19,13 +21,33 @@ function App() {
       <AuthProvider>
         <Router>
           <div className="App">
-            <Navigation />
-            <div className="content-wrapper">
               <Routes>
-                <Route path="/" element={<ImageConverter />} />
-                <Route path="/pdf" element={<PDFConverter />} />
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/converter" element={
+                  <>
+                    <Navigation />
+                    <div className="content-wrapper">
+                      <ImageConverter />
+                    </div>
+                  </>
+                } />
+                <Route path="/pdf" element={
+                  <>
+                    <Navigation />
+                    <div className="content-wrapper">
+                      <PDFConverter />
+                    </div>
+                  </>
+                } />
+                <Route path="/ocr" element={
+                  <>
+                    <Navigation />
+                    <div className="content-wrapper">
+                      <OCRConverter />
+                    </div>
+                  </>
+                } />
               </Routes>
-            </div>
           </div>
         </Router>
       </AuthProvider>

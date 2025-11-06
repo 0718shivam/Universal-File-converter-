@@ -22,8 +22,8 @@ const Navigation = () => {
           <div className="nav-content">
             <div className="nav-links">
               <Link
-                to="/"
-                className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
+                to="/converter"
+                className={`nav-link ${location.pathname === '/converter' ? 'active' : ''}`}
               >
                 Image Converter
               </Link>
@@ -32,6 +32,12 @@ const Navigation = () => {
                 className={`nav-link ${location.pathname === '/pdf' ? 'active' : ''}`}
               >
                 PDF Tools
+              </Link>
+              <Link
+                to="/ocr"
+                className={`nav-link nav-link-ocr ${location.pathname === '/ocr' ? 'active' : ''}`}
+              >
+                OCR
               </Link>
             </div>
 

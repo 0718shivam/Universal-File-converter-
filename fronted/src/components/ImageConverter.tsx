@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useState, type ChangeEvent, type FormEvent, useEffect, useRef } from 'react';
 import './ImageConverter.css';
 
 interface ConversionStatus {
@@ -12,9 +12,30 @@ const ImageConverter = () => {
   const [preview, setPreview] = useState<string>('');
   const [isConverting, setIsConverting] = useState<boolean>(false);
   const [status, setStatus] = useState<ConversionStatus | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const SUPPORTED_FORMATS = ['PNG', 'JPEG', 'JPG', 'WEBP', 'BMP', 'GIF', 'TIFF', 'ICO'];
   const API_URL = 'http://localhost:5001';
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      container.style.setProperty('--mouse-x', `${x}px`);
+      container.style.setProperty('--mouse-y', `${y}px`);
+    };
+
+    container.addEventListener('mousemove', handleMouseMove);
+    
+    return () => {
+      container.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -115,7 +136,7 @@ const ImageConverter = () => {
   };
 
   return (
-    <div className="image-converter">
+    <div className="image-converter" ref={containerRef}>
       <div className="converter-container">
         <h1>Image Format Converter</h1>
         <p className="subtitle">Convert your images to any format</p>

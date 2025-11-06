@@ -43,7 +43,6 @@ To enable Google Sign-In functionality, you need to set up a Google OAuth Client
 
 ##
 
-
 3. **Restart your development server** for the changes to take effect
 
 ## Testing
@@ -52,6 +51,9 @@ To enable Google Sign-In functionality, you need to set up a Google OAuth Client
    ```bash
    npm run dev
    ```
+
+
+
 
 2. Click the "Sign In" button in the top right
 3. Click "Sign in with Google"
