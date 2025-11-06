@@ -5,10 +5,33 @@ import io
 import os
 import zipfile
 from werkzeug.utils import secure_filename
-from pdf_converter import (
-    pdf_to_images, images_to_pdf, merge_pdfs, split_pdf,
-    compress_pdf, get_pdf_info, delete_pdf_pages, pdf_to_ppt, rotate_pdf_pages
-)
+
+# Import with error handling
+try:
+    from pdf_converter import (
+        pdf_to_images, images_to_pdf, merge_pdfs, split_pdf,
+        compress_pdf, get_pdf_info, delete_pdf_pages, pdf_to_ppt, rotate_pdf_pages
+    )
+except ImportError as e:
+    print(f"Warning: Could not import pdf_converter: {e}")
+
+try:
+    from ocr_converter import (
+        extract_text_from_image, create_text_file, create_word_file, get_supported_languages
+    )
+    OCR_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Could not import ocr_converter: {e}")
+    OCR_AVAILABLE = False
+    # Create dummy functions to prevent errors
+    def extract_text_from_image(*args, **kwargs):
+        raise Exception("OCR module not available. Please install pytesseract and python-docx.")
+    def create_text_file(*args, **kwargs):
+        raise Exception("OCR module not available.")
+    def create_word_file(*args, **kwargs):
+        raise Exception("OCR module not available.")
+    def get_supported_languages():
+        return ['english']
 
 app = Flask(__name__)
 CORS(app)
@@ -351,5 +374,108 @@ def rotate_pages_endpoint():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# ============= OCR ENDPOINTS =============
+
+@app.route('/ocr/extract', methods=['POST'])
+def ocr_extract_endpoint():
+    """Extract text from image using OCR"""
+    if not OCR_AVAILABLE:
+        return jsonify({'error': 'OCR module not available. Please install pytesseract and python-docx.'}), 500
+    
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+
+        file = request.files['file']
+        language = request.form.get('language', 'english')
+
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+
+        # Extract text
+        text = extract_text_from_image(file, language)
+
+        return jsonify({
+            'text': text,
+            'language': language,
+            'character_count': len(text)
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/ocr/download-txt', methods=['POST'])
+def ocr_download_txt_endpoint():
+    """Download extracted text as TXT file"""
+    if not OCR_AVAILABLE:
+        return jsonify({'error': 'OCR module not available.'}), 500
+    
+    try:
+        text = request.form.get('text', '')
+        filename = request.form.get('filename', 'extracted_text.txt')
+
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+
+        # Create text file
+        text_file = create_text_file(text)
+
+        return send_file(
+            text_file,
+            mimetype='text/plain',
+            as_attachment=True,
+            download_name=filename
+        )
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/ocr/download-docx', methods=['POST'])
+def ocr_download_docx_endpoint():
+    """Download extracted text as DOCX file"""
+    if not OCR_AVAILABLE:
+        return jsonify({'error': 'OCR module not available.'}), 500
+    
+    try:
+        text = request.form.get('text', '')
+        filename = request.form.get('filename', 'extracted_text.docx')
+
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+
+        # Create Word file
+        docx_file = create_word_file(text)
+
+        return send_file(
+            docx_file,
+            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            as_attachment=True,
+            download_name=filename
+        )
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/ocr/languages', methods=['GET'])
+def ocr_languages_endpoint():
+    """Get list of supported languages"""
+    if not OCR_AVAILABLE:
+        return jsonify({'languages': ['english']}), 200
+    
+    try:
+        languages = get_supported_languages()
+        return jsonify({'languages': languages}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
+    print("=" * 50)
+    print("Starting Convertify Backend Server...")
+    print("=" * 50)
+    print(f"Server will run on: http://localhost:5001")
+    print(f"OCR Available: {OCR_AVAILABLE}")
+    if not OCR_AVAILABLE:
+        print("WARNING: OCR features will not work. Install pytesseract and python-docx.")
+    print("=" * 50)
+    print("\nPress Ctrl+C to stop the server\n")
     app.run(debug=True, host='0.0.0.0', port=5001)
