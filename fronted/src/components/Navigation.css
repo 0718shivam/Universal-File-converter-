@@ -27,6 +27,7 @@
 .nav-auth {
   display: flex;
   align-items: center;
+  gap: 1rem;
 }
 
 .nav-brand h2 {
@@ -84,7 +85,7 @@
 }
 
 .signup-button {
-  background: transparent;
+  background: white;
   color: #667eea;
   border: 2px solid #667eea;
   padding: 0.625rem 1.5rem;
@@ -93,11 +94,15 @@
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
 }
 
 .signup-button:hover {
-  background: rgba(102, 126, 234, 0.1);
-  transform: translateY(-1px);
+  background: #f8f9ff;
+  border-color: #5568d3;
+  color: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
 }
 
 .login-button {
@@ -110,12 +115,13 @@
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .login-button:hover {
   background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 
 @media (max-width: 640px) {
@@ -161,4 +167,49 @@
     width: 100%;
     padding: 0.75rem;
   }
+}
+
+/* Dark Mode Styles */
+[data-theme='dark'] .navigation {
+  background: rgba(26, 32, 44, 0.95);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .nav-link {
+  color: #a5b4fc;
+}
+
+[data-theme='dark'] .nav-link:hover {
+  background: rgba(102, 126, 234, 0.2);
+}
+
+[data-theme='dark'] .nav-link.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+[data-theme='dark'] .nav-link-ocr {
+  color: #34d399;
+}
+
+[data-theme='dark'] .nav-link-ocr:hover {
+  background: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme='dark'] .nav-link-ocr.active {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+[data-theme='dark'] .signup-button {
+  color: #a5b4fc;
+  border-color: #667eea;
+}
+
+[data-theme='dark'] .signup-button:hover {
+  background: rgba(102, 126, 234, 0.2);
+}
+
+[data-theme='dark'] .login-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }

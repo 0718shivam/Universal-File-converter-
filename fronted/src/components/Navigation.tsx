@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import LoginModal from './LoginModal';
 import ProfileDropdown from './ProfileDropdown';
+import ThemeToggle from './ThemeToggle';
 import './Navigation.css';
 
 const Navigation = () => {
@@ -42,6 +43,7 @@ const Navigation = () => {
             </div>
 
             <div className="nav-auth">
+              <ThemeToggle />
               {isAuthenticated && user ? (
                 <ProfileDropdown user={user} />
               ) : (

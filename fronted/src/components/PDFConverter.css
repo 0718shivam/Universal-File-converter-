@@ -7,9 +7,13 @@
   align-items: center;
   position: relative;
   overflow: hidden;
+  background-image: 
+    linear-gradient(135deg, #667eea 0%, #764ba2 100%),
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
 }
 
-/* Grid Background */
+/* Grid Background - Darker and More Visible */
 .pdf-converter::before {
   content: '';
   position: absolute;
@@ -18,32 +22,30 @@
   width: 100%;
   height: 100%;
   background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    linear-gradient(rgba(102, 126, 234, 0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(102, 126, 234, 0.25) 1px, transparent 1px);
   background-size: 50px 50px;
   pointer-events: none;
   z-index: 0;
+  transition: opacity 0.3s ease;
 }
 
-/* Mouse glow effect */
+/* Mouse glow effect - Enhanced */
 .pdf-converter::after {
   content: '';
-  position: absolute;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-  border-radius: 50%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle 400px at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(102, 126, 234, 0.12) 0%,
+    transparent 50%
+  );
   pointer-events: none;
   z-index: 0;
-  opacity: 0;
-  transition: opacity 0.3s ease, transform 0.1s ease;
-  transform: translate(calc(var(--mouse-x, 50%) - 50%), calc(var(--mouse-y, 50%) - 50%));
-  left: 0;
-  top: 0;
-}
-
-.pdf-converter:hover::after {
-  opacity: 1;
+  transition: opacity 0.3s ease;
 }
 
 .pdf-converter > * {
@@ -54,12 +56,13 @@
 .pdf-converter .converter-container {
   max-width: 800px;
   width: 100%;
-  background: white;
+  background: #ffffff;
   border-radius: 20px;
   padding: 2.5rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(102, 126, 234, 0.25), 0 0 0 1px rgba(102, 126, 234, 0.1);
   transition: all 0.3s ease;
   position: relative;
+  border: 1px solid rgba(102, 126, 234, 0.1);
 }
 
 .pdf-converter .converter-container::before {
@@ -260,42 +263,67 @@ select.operation-select * {
 }
 
 .feature-card {
-  padding: 1rem;
-  background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
-  border-radius: 12px;
+  padding: 1.5rem;
+  background: #f7fafc;
+  border: 2px solid transparent;
+  border-radius: 16px;
   text-align: center;
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .feature-card::before {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.5s ease, height 0.5s ease;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 16px;
+  padding: 2px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 
 .feature-card:hover::before {
-  width: 300px;
-  height: 300px;
+  opacity: 1;
 }
 
 .feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
+  border-color: transparent;
 }
 
 .feature-card h3 {
+  color: #2d3748;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+  transition: color 0.3s ease;
+}
+
+.feature-card:hover h3 {
   color: #667eea;
+}
+
+.feature-card p {
+  color: #4a5568;
   font-size: 0.95rem;
-  margin: 0 0 0.5rem 0;
+  margin: 0;
+  line-height: 1.6;
+  transition: color 0.3s ease;
+}
+
+.feature-card:hover p {
+  color: #667eea;
 }
 
 /* Upload area styles */
@@ -509,4 +537,165 @@ select.operation-select * {
   .button-group {
     flex-direction: column;
   }
+}
+
+/* Dark Mode Styles */
+[data-theme='dark'] .pdf-converter {
+  background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+}
+
+[data-theme='dark'] .pdf-converter::before {
+  background-image: 
+    linear-gradient(rgba(102, 126, 234, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(102, 126, 234, 0.2) 1px, transparent 1px);
+}
+
+[data-theme='dark'] .pdf-converter::after {
+  background: radial-gradient(
+    circle 400px at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(102, 126, 234, 0.15) 0%,
+    transparent 50%
+  );
+}
+
+[data-theme='dark'] .pdf-converter .converter-container {
+  background: #2d3748;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='dark'] .pdf-converter .converter-container:hover {
+  box-shadow: 0 25px 70px rgba(102, 126, 234, 0.4);
+}
+
+[data-theme='dark'] .pdf-converter h1 {
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .pdf-converter .subtitle {
+  color: #cbd5e0;
+}
+
+[data-theme='dark'] .operation-selector label {
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .operation-select {
+  background: #1a202c !important;
+  background-color: #1a202c !important;
+  border-color: rgba(102, 126, 234, 0.3) !important;
+  color: #e2e8f0 !important;
+}
+
+[data-theme='dark'] .operation-select:hover {
+  background-color: #2d3748 !important;
+  border-color: rgba(102, 126, 234, 0.5) !important;
+}
+
+[data-theme='dark'] .operation-select:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+  background-color: #2d3748 !important;
+}
+
+[data-theme='dark'] .operation-select option {
+  background-color: #2d3748 !important;
+  color: #e2e8f0 !important;
+}
+
+[data-theme='dark'] .option-group label {
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .option-group select,
+[data-theme='dark'] .option-group input {
+  background: #1a202c;
+  border-color: rgba(102, 126, 234, 0.3);
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .option-group select:focus,
+[data-theme='dark'] .option-group input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+[data-theme='dark'] .pdf-info {
+  background: #1a202c;
+}
+
+[data-theme='dark'] .pdf-info h3 {
+  color: #a5b4fc;
+}
+
+[data-theme='dark'] .pdf-info p {
+  color: #cbd5e0;
+}
+
+[data-theme='dark'] .upload-area {
+  background: #1a202c;
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+[data-theme='dark'] .upload-area:hover {
+  background: #2d3748;
+  border-color: rgba(102, 126, 234, 0.5);
+}
+
+[data-theme='dark'] .upload-placeholder p {
+  color: #cbd5e0;
+}
+
+[data-theme='dark'] .upload-hint {
+  color: #718096 !important;
+}
+
+[data-theme='dark'] .file-name {
+  color: #cbd5e0;
+}
+
+[data-theme='dark'] .status-success {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme='dark'] .status-error {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+[data-theme='dark'] .status-info {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+[data-theme='dark'] .feature-card {
+  background: #2d3748;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .feature-card:hover {
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
+}
+
+[data-theme='dark'] .feature-card h3 {
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .feature-card:hover h3 {
+  color: #a5b4fc;
+}
+
+[data-theme='dark'] .feature-card p {
+  color: #cbd5e0;
+}
+
+[data-theme='dark'] .feature-card:hover p {
+  color: #a5b4fc;
+}
+
+[data-theme='dark'] .features-grid {
+  border-top-color: rgba(255, 255, 255, 0.1);
 }

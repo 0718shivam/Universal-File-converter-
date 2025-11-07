@@ -1,8 +1,11 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import ThemeToggle from './ThemeToggle';
 import './LandingPage.css';
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleGetStarted = () => {
     navigate('/converter');
@@ -16,8 +19,28 @@ const LandingPage = () => {
     navigate('/pdf');
   };
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      container.style.setProperty('--mouse-x', `${x}px`);
+      container.style.setProperty('--mouse-y', `${y}px`);
+    };
+
+    container.addEventListener('mousemove', handleMouseMove);
+    
+    return () => {
+      container.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
   return (
-    <div className="landing-page">
+    <div className="landing-page" ref={containerRef}>
       <header className="landing-header">
         <div className="landing-header-content">
           <h2 className="landing-brand">Convertify</h2>
@@ -25,6 +48,7 @@ const LandingPage = () => {
             <button onClick={handleGetStarted} className="nav-link">Image Converter</button>
             <button onClick={handlePDF} className="nav-link">PDF Tools</button>
             <button onClick={handleOCR} className="nav-link">OCR</button>
+            <ThemeToggle />
           </nav>
         </div>
       </header>
