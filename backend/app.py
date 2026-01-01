@@ -39,6 +39,8 @@ CORS(app)
 # Supported formats
 SUPPORTED_FORMATS = ['PNG', 'JPEG', 'JPG', 'WEBP', 'BMP', 'GIF', 'TIFF', 'ICO']
 
+# Shivam added this line to test commit
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({'status': 'ok', 'message': 'Server is running'}), 200
