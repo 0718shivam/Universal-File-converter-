@@ -138,8 +138,10 @@ def create_word_file(text, filename='extracted_text.docx'):
     font.name = 'Arial'
     font.size = Pt(11)
     
+    
     # Add text to document
     # Split by lines to preserve formatting
+
     lines = text.split('\n')
     for line in lines:
         if line.strip():

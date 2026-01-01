@@ -266,7 +266,10 @@ def delete_pdf_pages(pdf_file, pages_to_delete):
         pdf_document = fitz.open(stream=pdf_bytes, filetype="pdf")
         total_pages = pdf_document.page_count
 
-        # Parse pages to delete
+
+
+        # Parse pages to delete from pdf 
+
         pages_set = set()
         if isinstance(pages_to_delete, str):
             ranges = pages_to_delete.split(',')

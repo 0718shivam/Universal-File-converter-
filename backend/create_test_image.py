@@ -14,7 +14,7 @@ draw.rectangle([125, 150, 225, 250], fill='green')
 try:
     draw.text((150, 20), "Test Image", fill='black')
 except:
-    pass  # Font not available
+    pass  # Font not available (not error)
 
 # Save to frontend fixtures
 output_dir = os.path.join(os.path.dirname(__file__), '..', 'fronted', 'e2e', 'fixtures')
