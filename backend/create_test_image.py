@@ -10,7 +10,7 @@ draw.rectangle([50, 50, 150, 150], fill='red')
 draw.rectangle([200, 50, 300, 150], fill='blue')
 draw.rectangle([125, 150, 225, 250], fill='green')
 
-# Add text
+# Add text...(sample)
 try:
     draw.text((150, 20), "Test Image", fill='black')
 except:
