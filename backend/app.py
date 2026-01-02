@@ -124,7 +124,7 @@ def pdf_to_images_endpoint():
         # Convert PDF to images
         output_files = pdf_to_images(file, output_format, dpi)
 
-        # If single page, return single file
+        # If single page, return single file ....
         if len(output_files) == 1:
             return send_file(
                 io.BytesIO(output_files[0]['data']),
