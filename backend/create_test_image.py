@@ -16,7 +16,7 @@ try:
 except:
     pass  # Font not available (not error)
 
-# Save to frontend fixtures (in path)
+# Save to frontend fixtures (in path)...
 output_dir = os.path.join(os.path.dirname(__file__), '..', 'fronted', 'e2e', 'fixtures')
 os.makedirs(output_dir, exist_ok=True)
 output_path = os.path.join(output_dir, 'test-image.png')
