@@ -332,6 +332,7 @@ def pdf_to_ppt_endpoint():
         if file.filename == '':
             return jsonify({'error': 'No file selected'}), 400
 
+
         # Convert to PPT
         output = pdf_to_ppt(file)
 
@@ -361,7 +362,8 @@ def rotate_pages_endpoint():
         if file.filename == '':
             return jsonify({'error': 'No file selected'}), 400
 
-        # Rotate pages
+
+        # Rotate pages feature 
         output = rotate_pdf_pages(file, rotation, pages)
 
         original_name = os.path.splitext(secure_filename(file.filename))[0]
@@ -376,7 +378,11 @@ def rotate_pages_endpoint():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ============= OCR ENDPOINTS =============
+
+#..........................................................................#
+
+
+# ===================== OCR ENDPOINTS ===================================#
 
 @app.route('/ocr/extract', methods=['POST'])
 def ocr_extract_endpoint():
@@ -474,6 +480,7 @@ if __name__ == '__main__':
     print("=" * 50)
     print("Starting Convertify Backend Server...")
     print("=" * 50)
+    #server default location
     print(f"Server will run on: http://localhost:5001")
     print(f"OCR Available: {OCR_AVAILABLE}")
     if not OCR_AVAILABLE:
