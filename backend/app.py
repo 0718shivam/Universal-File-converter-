@@ -480,7 +480,7 @@ if __name__ == '__main__':
     print("=" * 50)
     print("Starting Convertify Backend Server...")
     print("=" * 50)
-    #server default location
+    #server default location.......
     print(f"Server will run on: http://localhost:5001")
     print(f"OCR Available: {OCR_AVAILABLE}")
     if not OCR_AVAILABLE:
