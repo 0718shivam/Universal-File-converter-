@@ -14,6 +14,7 @@ def check_imports():
     """Check if all required modules can be imported"""
     errors = []
     
+
     try:
         import flask
         print("[OK] Flask installed")
