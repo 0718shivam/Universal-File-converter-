@@ -1,8 +1,8 @@
-# Converter Hub - Image & PDF Converter
+# Convertify - Image & PDF Converter
 
 A comprehensive full-stack web application for image format conversion and PDF manipulation with an extensive suite of PDF tools.
 
-## Features
+## Features...
 
 ### Image Converter
 - Convert images between multiple formats (PNG, JPEG, WEBP, BMP, GIF, TIFF, ICO)
@@ -140,9 +140,11 @@ The frontend will run on `http://localhost:5173`
    - **Compress PDF**: Upload PDF, get compressed version
    - **Delete Pages**: Upload PDF, specify pages to delete (e.g., 1,3,5 or 1-3)
    - **Rotate Pages**: Upload PDF, choose rotation angle (90°, 180°, 270°)
+   - 
 2. Upload your file(s)
 3. Configure operation-specific options if needed
 4. Click "Convert" to process and download
+
 
 ## Supported Formats
 
@@ -245,6 +247,7 @@ npm run test:report
 - Get PDF information
 - Form data: `file`
 - Returns: JSON with metadata
+
 
 ## Development
 
