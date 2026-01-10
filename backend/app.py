@@ -13,6 +13,7 @@ from pdf_converter import (
 app = Flask(__name__)
 CORS(app)
 
+
 # Supported formats
 SUPPORTED_FORMATS = ['PNG', 'JPEG', 'JPG', 'WEBP', 'BMP', 'GIF', 'TIFF', 'ICO'] 
 # comments
