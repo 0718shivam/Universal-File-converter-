@@ -158,7 +158,7 @@ The frontend will run on `http://localhost:5173`
 - ICO
 
 ### PDF Operations
-- PDF to Images (PNG, JPEG, WEBP)
+- PDF to Images (PNG, JPEG, WEBP, JPG)
 - Images to PDF (A4, Letter, Legal)
 - PDF to PowerPoint (PPTX)
 - Merge, Split, Compress PDFs
@@ -290,12 +290,12 @@ The frontend is built with React and TypeScript:
 - Check that test fixtures exist in `fronted/e2e/fixtures/`
 - Run `python backend/create_test_image.py` to regenerate test images
 
+
 **CORS errors:**
 - Verify backend is running on port 5000
 - Check Flask-CORS is installed
 
 ## License
-
 MIT
 
 ## Contributing
