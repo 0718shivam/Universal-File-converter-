@@ -1,0 +1,190 @@
+.batch-file-list {
+  margin: 1.5rem 0;
+}
+
+.batch-file-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.batch-file-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.batch-limit-warning {
+  font-size: 0.875rem;
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.batch-files {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.batch-file-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.batch-file-item:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.batch-file-pending {
+  border-color: #e5e7eb;
+}
+
+.batch-file-converting {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.batch-file-completed {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.batch-file-error {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.batch-file-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.batch-file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.batch-file-name {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.batch-file-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.batch-file-progress {
+  margin-top: 0.5rem;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.batch-file-progress-bar {
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.3s ease;
+}
+
+.batch-file-error {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
+
+.batch-file-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.batch-action-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.batch-download-btn {
+  background: #10b981;
+  color: white;
+}
+
+.batch-download-btn:hover {
+  background: #059669;
+  transform: scale(1.05);
+}
+
+.batch-remove-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.batch-remove-btn:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+}
+
+/* Dark Mode */
+[data-theme='dark'] .batch-file-header h3 {
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .batch-file-item {
+  background: #1a202c;
+  border-color: rgba(102, 126, 234, 0.2);
+}
+
+[data-theme='dark'] .batch-file-item:hover {
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+[data-theme='dark'] .batch-file-converting {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+[data-theme='dark'] .batch-file-completed {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme='dark'] .batch-file-error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+[data-theme='dark'] .batch-file-name {
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .batch-file-meta {
+  color: #cbd5e0;
+}
+
+[data-theme='dark'] .batch-file-progress {
+  background: rgba(255, 255, 255, 0.1);
+}

@@ -1,6 +1,8 @@
 import { useState, type ChangeEvent, type FormEvent, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import LoginModal from './LoginModal';
+import ProgressBar from './ProgressBar';
+import { conversionHistory } from '../utils/conversionHistory';
 import './PDFConverter.css';
 
 interface ConversionStatus {
@@ -24,14 +26,25 @@ const PDFConverter = () => {
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [operation, setOperation] = useState<string>('to-images');
   const [imageFormat, setImageFormat] = useState<string>('PNG');
+  const [dpi, setDpi] = useState<number>(200);
   const [pageSize, setPageSize] = useState<string>('A4');
   const [pagesToDelete, setPagesto_Delete] = useState<string>('');
   const [rotation, setRotation] = useState<number>(90);
+  const [rotatePages, setRotatePages] = useState<string>('all');
   const [splitType, setSplitType] = useState<string>('all');
   const [pageRange, setPageRange] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [watermarkText, setWatermarkText] = useState<string>('');
+  const [watermarkOpacity, setWatermarkOpacity] = useState<number>(0.2);
+  const [watermarkFontSize, setWatermarkFontSize] = useState<number>(36);
+  const [watermarkPages, setWatermarkPages] = useState<string>('all');
+  const [compressQuality, setCompressQuality] = useState<number>(60);
+  const [compressDpi, setCompressDpi] = useState<number>(150);
   const [isConverting, setIsConverting] = useState<boolean>(false);
   const [status, setStatus] = useState<ConversionStatus | null>(null);
   const [pdfInfo, setPdfInfo] = useState<PDFInfo | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const API_URL = 'http://localhost:5001';
@@ -66,6 +79,30 @@ const PDFConverter = () => {
       setSelectedFile(files[0]);
 
       // Auto-get PDF info if PDF is selected
+      if (files[0].type === 'application/pdf') {
+        getPDFInfo(files[0]);
+      }
+    }
+    setStatus(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => setIsDragging(false);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (!files || files.length === 0) return;
+
+    if (operation === 'from-images' || operation === 'merge') {
+      setSelectedFiles(files);
+    } else {
+      setSelectedFile(files[0]);
       if (files[0].type === 'application/pdf') {
         getPDFInfo(files[0]);
       }
@@ -110,7 +147,12 @@ const PDFConverter = () => {
     }
 
     setIsConverting(true);
+    setProgress(0);
     setStatus({ type: 'info', message: 'Processing...' });
+
+    const progressInterval = setInterval(() => {
+      setProgress(prev => Math.min(prev + 12, 90));
+    }, 200);
 
     try {
       const formData = new FormData();
@@ -121,6 +163,7 @@ const PDFConverter = () => {
           if (!selectedFile) throw new Error('No file selected');
           formData.append('file', selectedFile);
           formData.append('format', imageFormat);
+          formData.append('dpi', dpi.toString());
           endpoint = '/pdf/to-images';
           break;
 
@@ -175,8 +218,62 @@ const PDFConverter = () => {
           if (!selectedFile) throw new Error('No file selected');
           formData.append('file', selectedFile);
           formData.append('rotation', rotation.toString());
-          formData.append('pages', 'all');
+          formData.append('pages', rotatePages || 'all');
           endpoint = '/pdf/rotate';
+          break;
+
+        case 'to-word':
+          if (!selectedFile) throw new Error('No file selected');
+          formData.append('file', selectedFile);
+          endpoint = '/pdf/to-word';
+          break;
+
+        case 'to-text':
+          if (!selectedFile) throw new Error('No file selected');
+          formData.append('file', selectedFile);
+          endpoint = '/pdf/to-text';
+          break;
+
+        case 'to-excel':
+          if (!selectedFile) throw new Error('No file selected');
+          formData.append('file', selectedFile);
+          endpoint = '/pdf/to-excel';
+          break;
+
+        case 'from-excel':
+          if (!selectedFile) throw new Error('No file selected');
+          formData.append('file', selectedFile);
+          formData.append('pageSize', pageSize);
+          endpoint = '/pdf/from-excel';
+          break;
+
+        case 'encrypt':
+          if (!selectedFile) throw new Error('No file selected');
+          if (!password) throw new Error('Please enter a password');
+          formData.append('file', selectedFile);
+          formData.append('password', password);
+          endpoint = '/pdf/encrypt';
+          break;
+
+        case 'decrypt':
+          if (!selectedFile) throw new Error('No file selected');
+          if (!password) throw new Error('Please enter a password');
+          formData.append('file', selectedFile);
+          formData.append('password', password);
+          endpoint = '/pdf/decrypt';
+          break;
+
+        
+
+        case 'watermark':
+          if (!selectedFile) throw new Error('No file selected');
+          if (!watermarkText) throw new Error('Please enter watermark text');
+          formData.append('file', selectedFile);
+          formData.append('text', watermarkText);
+          formData.append('opacity', watermarkOpacity.toString());
+          formData.append('fontSize', watermarkFontSize.toString());
+          formData.append('pages', watermarkPages || 'all');
+          endpoint = '/pdf/watermark';
           break;
 
         default:
@@ -209,14 +306,30 @@ const PDFConverter = () => {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
 
+      setProgress(100);
       setStatus({ type: 'success', message: 'Operation completed successfully!' });
+
+      // Save to history
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        conversionHistory.add({
+          filename: selectedFile?.name || 'converted',
+          originalFormat: 'pdf',
+          targetFormat: getExtension(),
+          fileData: reader.result as string,
+          size: blob.size
+        });
+      };
+      reader.readAsDataURL(blob);
     } catch (error) {
       setStatus({
         type: 'error',
         message: error instanceof Error ? error.message : 'An error occurred'
       });
     } finally {
+      clearInterval(progressInterval);
       setIsConverting(false);
+      setTimeout(() => setProgress(0), 1000);
     }
   };
 
@@ -224,6 +337,9 @@ const PDFConverter = () => {
     switch (operation) {
       case 'to-images': return imageFormat.toLowerCase();
       case 'to-ppt': return 'pptx';
+      case 'to-word': return 'docx';
+      case 'to-excel': return 'xlsx';
+      case 'to-text': return 'txt';
       default: return 'pdf';
     }
   };
@@ -235,6 +351,13 @@ const PDFConverter = () => {
     setPdfInfo(null);
     setPagesto_Delete('');
     setPageRange('');
+    setRotatePages('all');
+    setPassword('');
+    setDpi(200);
+    setWatermarkText('');
+    setWatermarkOpacity(0.2);
+    setWatermarkFontSize(36);
+    setWatermarkPages('all');
   };
 
   const renderOperationOptions = () => {
@@ -248,6 +371,14 @@ const PDFConverter = () => {
               <option value="JPEG">JPEG</option>
               <option value="WEBP">WEBP</option>
             </select>
+            <label>Resolution (DPI):</label>
+            <input
+              type="number"
+              min={72}
+              max={600}
+              value={dpi}
+              onChange={(e) => setDpi(parseInt(e.target.value) || 200)}
+            />
           </div>
         );
 
@@ -309,7 +440,122 @@ const PDFConverter = () => {
               <option value="180">180°</option>
               <option value="270">270° Clockwise (90° Counter-clockwise)</option>
             </select>
+            <label>Pages (e.g., all or 1,3,5 or 2-4):</label>
+            <input
+              type="text"
+              value={rotatePages}
+              onChange={(e) => setRotatePages(e.target.value)}
+              placeholder="all"
+            />
           </div>
+        );
+
+      case 'encrypt':
+        return (
+          <div className="option-group">
+            <label>Password:</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+            />
+          </div>
+        );
+
+      case 'decrypt':
+        return (
+          <div className="option-group">
+            <label>Password:</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+            />
+          </div>
+        );
+
+      case 'from-excel':
+        return (
+          <div className="option-group">
+            <label>Page Size:</label>
+            <select value={pageSize} onChange={(e) => setPageSize(e.target.value)}>
+              <option value="A4">A4</option>
+              <option value="LETTER">Letter</option>
+              <option value="LEGAL">Legal</option>
+            </select>
+          </div>
+        );
+
+      case 'compress':
+        return (
+          <div className="option-group">
+            <label>Quality:</label>
+            <input
+              type="range"
+              min={10}
+              max={95}
+              value={compressQuality}
+              onChange={(e) => setCompressQuality(parseInt(e.target.value))}
+            />
+            <span>{compressQuality}</span>
+            <label>DPI:</label>
+            <input
+              type="number"
+              min={72}
+              max={300}
+              value={compressDpi}
+              onChange={(e) => setCompressDpi(parseInt(e.target.value))}
+            />
+          </div>
+        );
+
+      
+
+      case 'watermark':
+        return (
+          <>
+            <div className="option-group">
+              <label>Watermark Text:</label>
+              <input
+                type="text"
+                value={watermarkText}
+                onChange={(e) => setWatermarkText(e.target.value)}
+                placeholder="Enter watermark"
+              />
+            </div>
+            <div className="option-group">
+              <label>Opacity:</label>
+              <input
+                type="number"
+                min={0}
+                max={1}
+                step={0.05}
+                value={watermarkOpacity}
+                onChange={(e) => setWatermarkOpacity(parseFloat(e.target.value) || 0.2)}
+              />
+            </div>
+            <div className="option-group">
+              <label>Font Size:</label>
+              <input
+                type="number"
+                min={8}
+                max={96}
+                value={watermarkFontSize}
+                onChange={(e) => setWatermarkFontSize(parseInt(e.target.value) || 36)}
+              />
+            </div>
+            <div className="option-group">
+              <label>Pages (e.g., all or 1,3,5 or 2-4):</label>
+              <input
+                type="text"
+                value={watermarkPages}
+                onChange={(e) => setWatermarkPages(e.target.value)}
+                placeholder="all"
+              />
+            </div>
+          </>
         );
 
       default:
@@ -319,6 +565,7 @@ const PDFConverter = () => {
 
   const getAcceptType = () => {
     if (operation === 'from-images') return 'image/*';
+    if (operation === 'from-excel') return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     return 'application/pdf';
   };
 
@@ -348,17 +595,29 @@ const PDFConverter = () => {
               <option value="to-images">PDF to Images</option>
               <option value="from-images">Images to PDF</option>
               <option value="to-ppt">PDF to PowerPoint</option>
+              <option value="to-word">PDF to Word</option>
+              <option value="to-excel">PDF to Excel</option>
+              <option value="to-text">PDF to Text</option>
+              <option value="from-excel">Excel to PDF</option>
               <option value="merge">Merge PDFs</option>
               <option value="split">Split PDF</option>
               <option value="compress">Compress PDF</option>
               <option value="delete-pages">Delete PDF Pages</option>
               <option value="rotate">Rotate PDF Pages</option>
+              <option value="encrypt">Encrypt PDF</option>
+              <option value="decrypt">Decrypt PDF</option>
+              <option value="watermark">Add Watermark</option>
             </select>
           </div>
 
           <div className="upload-section">
             <label htmlFor="file-input" className="file-label">
-              <div className="upload-area">
+              <div 
+                className={`upload-area ${isDragging ? 'dragging' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <div className="upload-placeholder">
                   <svg className="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -403,6 +662,10 @@ const PDFConverter = () => {
             </div>
           )}
 
+          {isConverting && progress > 0 && (
+            <ProgressBar progress={progress} status="Processing..." variant="purple" />
+          )}
+
           <div className="button-group">
             <button type="submit" disabled={(!selectedFile && !selectedFiles) || isConverting}
               className="btn btn-primary">
@@ -416,7 +679,7 @@ const PDFConverter = () => {
           </div>
         </form>
 
-        <div className="features-grid">
+          <div className="features-grid">
           <div className="feature-card">
             <h3>PDF to Images</h3>
             <p>Convert PDF pages to PNG, JPEG, or WEBP</p>
@@ -428,6 +691,22 @@ const PDFConverter = () => {
           <div className="feature-card">
             <h3>PDF to PPT</h3>
             <p>Convert PDF to PowerPoint presentation</p>
+          </div>
+          <div className="feature-card">
+            <h3>PDF to Word</h3>
+            <p>Convert PDF to editable DOCX</p>
+          </div>
+          <div className="feature-card">
+            <h3>PDF to Excel</h3>
+            <p>Export tabular data to XLSX</p>
+          </div>
+          <div className="feature-card">
+            <h3>PDF to Text</h3>
+            <p>Extract plain text from PDF</p>
+          </div>
+          <div className="feature-card">
+            <h3>Excel to PDF</h3>
+            <p>Convert XLSX spreadsheets to PDF</p>
           </div>
           <div className="feature-card">
             <h3>Merge PDFs</h3>
@@ -449,6 +728,15 @@ const PDFConverter = () => {
             <h3>Rotate Pages</h3>
             <p>Rotate PDF pages</p>
           </div>
+          <div className="feature-card">
+            <h3>Encrypt/Decrypt</h3>
+            <p>Protect or unlock PDFs with a password</p>
+          </div>
+          <div className="feature-card">
+            <h3>Add Watermark</h3>
+            <p>Apply custom text watermark to pages</p>
+          </div>
+          
         </div>
       </div>
     </div>

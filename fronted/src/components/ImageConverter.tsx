@@ -1,6 +1,8 @@
 import { useState, type ChangeEvent, type FormEvent, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import LoginModal from './LoginModal';
+import ProgressBar from './ProgressBar';
+import { conversionHistory } from '../utils/conversionHistory';
 import './ImageConverter.css';
 
 interface ConversionStatus {
@@ -17,6 +19,8 @@ const ImageConverter = () => {
   const [preview, setPreview] = useState<string>('');
   const [isConverting, setIsConverting] = useState<boolean>(false);
   const [status, setStatus] = useState<ConversionStatus | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const SUPPORTED_FORMATS = ['PNG', 'JPEG', 'JPG', 'WEBP', 'BMP', 'GIF', 'TIFF', 'ICO'];
@@ -66,6 +70,26 @@ const ImageConverter = () => {
     }
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => setIsDragging(false);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setSelectedFile(file);
+      setStatus(null);
+      const reader = new FileReader();
+      reader.onloadend = () => setPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleFormatChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setTargetFormat(event.target.value);
   };
@@ -91,10 +115,12 @@ const ImageConverter = () => {
     }
 
     setIsConverting(true);
-    setStatus({
-      type: 'info',
-      message: 'Converting image...'
-    });
+    setProgress(0);
+    setStatus({ type: 'info', message: 'Converting image...' });
+
+    const progressInterval = setInterval(() => {
+      setProgress(prev => Math.min(prev + 15, 90));
+    }, 150);
 
     try {
       const formData = new FormData();
@@ -128,17 +154,30 @@ const ImageConverter = () => {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
 
-      setStatus({
-        type: 'success',
-        message: `Successfully converted to ${targetFormat}!`
-      });
+      setProgress(100);
+      setStatus({ type: 'success', message: `Successfully converted to ${targetFormat}!` });
+
+      // Save to history
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        conversionHistory.add({
+          filename: selectedFile.name,
+          originalFormat: selectedFile.type.split('/')[1],
+          targetFormat: targetFormat.toLowerCase(),
+          fileData: reader.result as string,
+          size: blob.size
+        });
+      };
+      reader.readAsDataURL(blob);
     } catch (error) {
       setStatus({
         type: 'error',
         message: error instanceof Error ? error.message : 'An error occurred during conversion'
       });
     } finally {
+      clearInterval(progressInterval);
       setIsConverting(false);
+      setTimeout(() => setProgress(0), 1000);
     }
   };
 
@@ -159,7 +198,12 @@ const ImageConverter = () => {
         <form onSubmit={handleSubmit} className="converter-form">
           <div className="upload-section">
             <label htmlFor="file-input" className="file-label">
-              <div className="upload-area">
+              <div 
+                className={`upload-area ${isDragging ? 'dragging' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 {preview ? (
                   <div className="preview-container">
                     <img src={preview} alt="Preview" className="preview-image" />
@@ -219,6 +263,10 @@ const ImageConverter = () => {
             <div className={`status-message status-${status.type}`}>
               {status.message}
             </div>
+          )}
+
+          {isConverting && progress > 0 && (
+            <ProgressBar progress={progress} status="Converting..." variant="purple" />
           )}
 
           <div className="button-group">

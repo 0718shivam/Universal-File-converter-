@@ -18,6 +18,10 @@
   align-items: center;
 }
 
+.nav-brand {
+  margin-left: -1rem;
+}
+
 .nav-content {
   display: flex;
   align-items: center;
@@ -28,6 +32,11 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-direction: row-reverse;
+}
+
+.nav-auth .profile-dropdown {
+  margin-right: 0.5rem;
 }
 
 .nav-brand h2 {
@@ -116,12 +125,31 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  margin-left: 0.5rem;
 }
 
 .login-button:hover {
   background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.history-button {
+  background: rgba(102, 126, 234, 0.1);
+  border: 2px solid rgba(102, 126, 234, 0.3);
+  padding: 0.625rem 1rem;
+  border-radius: 50px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.history-button:hover {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.5);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
 }
 
 @media (max-width: 640px) {
@@ -212,4 +240,14 @@
 
 [data-theme='dark'] .login-button {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+[data-theme='dark'] .history-button {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+[data-theme='dark'] .history-button:hover {
+  background: rgba(102, 126, 234, 0.3);
+  border-color: rgba(102, 126, 234, 0.5);
 }

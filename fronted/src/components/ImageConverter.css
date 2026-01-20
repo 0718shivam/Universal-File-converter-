@@ -153,6 +153,13 @@ h1 {
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
 }
 
+.upload-area.dragging {
+  border-color: #764ba2;
+  background: #e8eaff;
+  transform: scale(1.02);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
 .upload-placeholder {
   display: flex;
   flex-direction: column;
@@ -501,6 +508,11 @@ h1 {
 [data-theme='dark'] .format-select {
   background: #1a202c;
   border-color: rgba(102, 126, 234, 0.3);
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .format-select option {
+  background: #1a202c;
   color: #e2e8f0;
 }
 

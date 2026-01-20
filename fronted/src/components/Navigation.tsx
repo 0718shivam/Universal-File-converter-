@@ -4,12 +4,14 @@ import { useAuth } from '../contexts/AuthContext';
 import LoginModal from './LoginModal';
 import ProfileDropdown from './ProfileDropdown';
 import ThemeToggle from './ThemeToggle';
+import ConversionHistory from './ConversionHistory';
 import './Navigation.css';
 
 const Navigation = () => {
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [loginMode, setLoginMode] = useState<'login' | 'signup'>('login');
 
   return (
@@ -44,6 +46,13 @@ const Navigation = () => {
 
             <div className="nav-auth">
               <ThemeToggle />
+              <button 
+                className="history-button" 
+                onClick={() => setShowHistory(true)}
+                title="Conversion History"
+              >
+                📜
+              </button>
               {isAuthenticated && user ? (
                 <ProfileDropdown user={user} />
               ) : (
@@ -78,6 +87,11 @@ const Navigation = () => {
         onClose={() => setShowLoginModal(false)}
         mode={loginMode}
         onSwitchMode={() => setLoginMode(loginMode === 'login' ? 'signup' : 'login')}
+      />
+
+      <ConversionHistory
+        isOpen={showHistory}
+        onClose={() => setShowHistory(false)}
       />
     </>
   );

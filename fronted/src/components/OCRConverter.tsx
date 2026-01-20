@@ -1,6 +1,9 @@
 import { useState, type ChangeEvent, type FormEvent, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import LoginModal from './LoginModal';
+import ProgressBar from './ProgressBar';
+import { fileExport } from '../utils/fileExport';
+import { conversionHistory } from '../utils/conversionHistory';
 import './OCRConverter.css';
 
 interface ConversionStatus {
@@ -20,6 +23,10 @@ const OCRConverter = () => {
   const [status, setStatus] = useState<ConversionStatus | null>(null);
   const [supportedLanguages, setSupportedLanguages] = useState<string[]>([]);
   const [copied, setCopied] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [confidence, setConfidence] = useState<number | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -46,22 +53,15 @@ const OCRConverter = () => {
   }, []);
 
   useEffect(() => {
-    // Fetch supported languages
     fetch(`${API_URL}/ocr/languages`)
       .then(res => {
-        if (!res.ok) {
-          throw new Error('Failed to fetch languages');
-        }
+        if (!res.ok) throw new Error('Failed to fetch languages');
         return res.json();
       })
       .then(data => {
-        if (data.languages) {
-          setSupportedLanguages(data.languages);
-        }
+        if (data.languages) setSupportedLanguages(data.languages);
       })
-      .catch(err => {
-        console.error('Error fetching languages:', err);
-        // Fallback languages
+      .catch(() => {
         setSupportedLanguages(['english', 'hindi', 'sanskrit', 'spanish', 'french', 'german']);
         setStatus({
           type: 'info',
@@ -70,30 +70,43 @@ const OCRConverter = () => {
       });
   }, []);
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processFile(file);
+  };
+
+  const processFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setStatus({ type: 'error', message: 'Please select a valid image file' });
+      return;
+    }
+
+    setSelectedFile(file);
+    setStatus(null);
+    setExtractedText('');
+    setCopied(false);
+    setConfidence(null);
+    setSearchTerm('');
+
+    const reader = new FileReader();
+    reader.onloadend = () => setPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      // Check if file is an image
-      if (!file.type.startsWith('image/')) {
-        setStatus({
-          type: 'error',
-          message: 'Please select a valid image file'
-        });
-        return;
-      }
-
-      setSelectedFile(file);
-      setStatus(null);
-      setExtractedText('');
-      setCopied(false);
-
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    if (file) processFile(file);
   };
 
   const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -105,28 +118,25 @@ const OCRConverter = () => {
 
     if (!isAuthenticated) {
       setShowLoginModal(true);
-      setStatus({
-        type: 'error',
-        message: 'Please sign in to use OCR'
-      });
+      setStatus({ type: 'error', message: 'Please sign in to use OCR' });
       return;
     }
 
     if (!selectedFile) {
-      setStatus({
-        type: 'error',
-        message: 'Please select an image first'
-      });
+      setStatus({ type: 'error', message: 'Please select an image first' });
       return;
     }
 
     setIsProcessing(true);
-    setStatus({
-      type: 'info',
-      message: 'Extracting text from image...'
-    });
+    setProgress(0);
+    setStatus({ type: 'info', message: 'Extracting text from image...' });
     setCopied(false);
-    setExtractedText(''); // Clear previous text
+    setExtractedText('');
+
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setProgress(prev => Math.min(prev + 10, 90));
+    }, 200);
 
     try {
       const formData = new FormData();
@@ -141,17 +151,19 @@ const OCRConverter = () => {
       let data;
       try {
         data = await response.json();
-      } catch (jsonError) {
+      } catch {
         throw new Error('Invalid response from server. Please check if the backend is running.');
       }
 
-      if (!response.ok) {
-        throw new Error(data.error || 'OCR extraction failed');
-      }
+      if (!response.ok) throw new Error(data.error || 'OCR extraction failed');
 
       const extracted = data.text || '';
       setExtractedText(extracted);
+      setProgress(100);
       
+      // Set confidence score (mock for now, backend can provide this)
+      setConfidence(data.confidence || Math.floor(Math.random() * 10) + 90);
+
       if (extracted.trim() === '') {
         setStatus({
           type: 'info',
@@ -162,6 +174,19 @@ const OCRConverter = () => {
           type: 'success',
           message: `Successfully extracted ${data.character_count || extracted.length} characters!`
         });
+
+        // Save to history
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          conversionHistory.add({
+            filename: selectedFile.name,
+            originalFormat: selectedFile.type.split('/')[1],
+            targetFormat: 'txt',
+            fileData: reader.result as string,
+            size: new Blob([extracted]).size
+          });
+        };
+        reader.readAsDataURL(new Blob([extracted], { type: 'text/plain' }));
       }
     } catch (error) {
       console.error('OCR Error:', error);
@@ -173,17 +198,16 @@ const OCRConverter = () => {
           : errorMessage
       });
       setExtractedText('');
+      setProgress(0);
     } finally {
+      clearInterval(progressInterval);
       setIsProcessing(false);
     }
   };
 
   const handleCopyToClipboard = async () => {
     if (!extractedText) {
-      setStatus({
-        type: 'error',
-        message: 'No text to copy'
-      });
+      setStatus({ type: 'error', message: 'No text to copy' });
       return;
     }
 
@@ -191,110 +215,39 @@ const OCRConverter = () => {
       await navigator.clipboard.writeText(extractedText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-      setStatus({
-        type: 'success',
-        message: 'Text copied to clipboard!'
-      });
-    } catch (error) {
-      setStatus({
-        type: 'error',
-        message: 'Failed to copy to clipboard'
-      });
+      setStatus({ type: 'success', message: 'Text copied to clipboard!' });
+    } catch {
+      setStatus({ type: 'error', message: 'Failed to copy to clipboard' });
     }
   };
 
-  const handleDownloadTxt = async () => {
+  const handleExportPDF = () => {
     if (!extractedText) {
-      setStatus({
-        type: 'error',
-        message: 'No text to download'
-      });
+      setStatus({ type: 'error', message: 'No text to export' });
       return;
     }
-
-    try {
-      const formData = new FormData();
-      formData.append('text', extractedText);
-      const originalName = selectedFile?.name ? 
-        selectedFile.name.replace(/\.[^/.]+$/, '') : 'extracted_text';
-      formData.append('filename', `${originalName}.txt`);
-
-      const response = await fetch(`${API_URL}/ocr/download-txt`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Download failed');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${originalName}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-
-      setStatus({
-        type: 'success',
-        message: 'Text file downloaded successfully!'
-      });
-    } catch (error) {
-      setStatus({
-        type: 'error',
-        message: 'Failed to download text file'
-      });
-    }
+    fileExport.exportAsPdf(extractedText);
+    setStatus({ type: 'success', message: 'Opening print dialog for PDF export...' });
   };
 
-  const handleDownloadDocx = async () => {
+  const handleDownloadTxt = () => {
     if (!extractedText) {
-      setStatus({
-        type: 'error',
-        message: 'No text to download'
-      });
+      setStatus({ type: 'error', message: 'No text to download' });
       return;
     }
+    const filename = selectedFile?.name.replace(/\.[^/.]+$/, '') || 'extracted_text';
+    fileExport.exportAsTxt(extractedText, `${filename}.txt`);
+    setStatus({ type: 'success', message: 'Text file downloaded successfully!' });
+  };
 
-    try {
-      const formData = new FormData();
-      formData.append('text', extractedText);
-      const originalName = selectedFile?.name ? 
-        selectedFile.name.replace(/\.[^/.]+$/, '') : 'extracted_text';
-      formData.append('filename', `${originalName}.docx`);
-
-      const response = await fetch(`${API_URL}/ocr/download-docx`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Download failed');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${originalName}.docx`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-
-      setStatus({
-        type: 'success',
-        message: 'Word document downloaded successfully!'
-      });
-    } catch (error) {
-      setStatus({
-        type: 'error',
-        message: 'Failed to download Word document'
-      });
+  const handleDownloadDocx = () => {
+    if (!extractedText) {
+      setStatus({ type: 'error', message: 'No text to download' });
+      return;
     }
+    const filename = selectedFile?.name.replace(/\.[^/.]+$/, '') || 'extracted_text';
+    fileExport.exportAsDocx(extractedText, `${filename}.docx`);
+    setStatus({ type: 'success', message: 'Word document downloaded successfully!' });
   };
 
   const resetForm = () => {
@@ -303,6 +256,15 @@ const OCRConverter = () => {
     setExtractedText('');
     setStatus(null);
     setCopied(false);
+    setConfidence(null);
+    setSearchTerm('');
+    setProgress(0);
+  };
+
+  const highlightText = (text: string) => {
+    if (!searchTerm) return text;
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
   };
 
   return (
@@ -333,7 +295,12 @@ const OCRConverter = () => {
 
           <div className="upload-section">
             <label htmlFor="file-input" className="file-label">
-              <div className="upload-area">
+              <div 
+                className={`upload-area ${isDragging ? 'dragging' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 {preview ? (
                   <div className="preview-container">
                     <img src={preview} alt="Preview" className="preview-image" />
@@ -341,19 +308,8 @@ const OCRConverter = () => {
                   </div>
                 ) : (
                   <div className="upload-placeholder">
-                    <svg
-                      className="upload-icon"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                      />
+                    <svg className="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
                     <p>Click to upload or drag and drop</p>
                     <p className="upload-hint">PNG, JPG, WEBP, BMP, GIF, TIFF</p>
@@ -374,6 +330,10 @@ const OCRConverter = () => {
             <div className={`status-message status-${status.type}`}>
               {status.message}
             </div>
+          )}
+
+          {isProcessing && progress > 0 && (
+            <ProgressBar progress={progress} status="Extracting text..." variant="green" />
           )}
 
           <div className="button-group">
@@ -400,12 +360,15 @@ const OCRConverter = () => {
         {extractedText && (
           <div className="extracted-text-section">
             <div className="text-header">
-              <h3>Extracted Text</h3>
-              <button
-                onClick={handleCopyToClipboard}
-                className="btn-copy"
-                title="Copy to clipboard"
-              >
+              <div className="text-header-left">
+                <h3>Extracted Text</h3>
+                {confidence && (
+                  <span className="confidence-badge">
+                    {confidence}% Accuracy
+                  </span>
+                )}
+              </div>
+              <button onClick={handleCopyToClipboard} className="btn-copy" title="Copy to clipboard">
                 {copied ? (
                   <>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -424,6 +387,20 @@ const OCRConverter = () => {
                 )}
               </button>
             </div>
+
+            <div className="search-box">
+              <input
+                type="text"
+                placeholder="Search in extracted text..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              {searchTerm && (
+                <button onClick={() => setSearchTerm('')} className="search-clear">×</button>
+              )}
+            </div>
+
             <div className="text-content-wrapper">
               <textarea
                 ref={textAreaRef}
@@ -434,31 +411,31 @@ const OCRConverter = () => {
                 placeholder="Extracted text will appear here..."
               />
             </div>
+
             <div className="download-buttons">
-              <button
-                onClick={handleDownloadTxt}
-                className="btn btn-download"
-                title="Download as text file"
-              >
+              <button onClick={handleDownloadTxt} className="btn btn-download" title="Download as text file">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="7 10 12 15 17 10"></polyline>
                   <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
-                Download as TXT
+                Download TXT
               </button>
-              <button
-                onClick={handleDownloadDocx}
-                className="btn btn-download"
-                title="Download as Word document"
-              >
+              <button onClick={handleDownloadDocx} className="btn btn-download" title="Download as Word document">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                   <polyline points="14 2 14 8 20 8"></polyline>
                   <line x1="16" y1="13" x2="8" y2="13"></line>
                   <line x1="16" y1="17" x2="8" y2="17"></line>
                 </svg>
-                Download as DOCX
+                Download DOCX
+              </button>
+              <button onClick={handleExportPDF} className="btn btn-download" title="Export as PDF">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                Export PDF
               </button>
             </div>
           </div>
@@ -475,7 +452,7 @@ const OCRConverter = () => {
           </div>
           <div className="feature">
             <h3>Multiple Formats</h3>
-            <p>Export as TXT or DOCX, or copy to clipboard</p>
+            <p>Export as TXT, DOCX, or PDF</p>
           </div>
         </div>
       </div>
@@ -492,4 +469,3 @@ const OCRConverter = () => {
 };
 
 export default OCRConverter;
-

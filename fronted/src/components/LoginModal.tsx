@@ -1,4 +1,4 @@
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, type FormEvent, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import GoogleLoginButton from './GoogleLoginButton';
 import './LoginModal.css';
@@ -104,7 +104,6 @@ const LoginModal = ({ isOpen, onClose, mode, onSwitchMode }: LoginModalProps) =>
 
       // For demo: Use localStorage-based auth
       // In production, this would call your backend API
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
       
       if (mode === 'signup') {
         // Check if user already exists (in localStorage for demo)
